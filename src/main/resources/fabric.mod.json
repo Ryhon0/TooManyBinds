@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "tmb",
+	"version": "${version}",
+	"name": "Too Many Binds",
+	"description": "Search and simulate keybinds",
+	"authors": [
+		"Ryhon"
+	],
+	"contact": {
+		"homepage": "https://ryhon.xyz/",
+		"sources": "https://github.com/Ryhon0/TooManyBinds"
+	},
+	"license": "GPL-3.0",
+	"icon": "assets/tmb/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"xyz.ryhon.tmb.TMB"
+		]
+	},
+	"accessWidener": "tmb.accesswidener",
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": "~1.20.4",
+		"java": ">=17",
+		"fabric-api": "*"
+	}
+}

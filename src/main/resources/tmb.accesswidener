@@ -1,0 +1,4 @@
+accessWidener v2 named
+
+accessible	field	net/minecraft/client/option/KeyBinding	timesPressed	I
+accessible	field	net/minecraft/client/option/KeyBinding	KEYS_BY_ID	Ljava/util/Map;
