@@ -2,6 +2,7 @@ package xyz.ryhon.tmb;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -267,6 +268,8 @@ public class SearchScreen extends Screen {
 			list.add(be);
 		}
 
+		list.sort(Comparator.comparing(BindingEntry::getName));
+
 		return list;
 	}
 
@@ -288,6 +291,10 @@ public class SearchScreen extends Screen {
 
 		public String categoryId;
 		public String categoryName;
+
+		public String getName() {
+			return name;
+		}
 
 		public boolean matches(String query) {
 			String[] split = query.toLowerCase().split("\\ ");
