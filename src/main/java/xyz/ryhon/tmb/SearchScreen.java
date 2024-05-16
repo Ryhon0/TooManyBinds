@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.math.Rect2i;
 import net.minecraft.text.Text;
 import net.minecraft.util.Language;
 
@@ -83,10 +84,15 @@ public class SearchScreen extends Screen {
 				continue;
 			}
 
+			Rect2i r = new Rect2i(searchBox.getX(),
+					searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2),
+					searchBox.getWidth(), (rowSize * 2) - 1);
+
+			Boolean hovered = r.contains(mouseX, mouseY);
 			Boolean selected = selectedIndex == i;
-			int nameColor = selected ? 0xffff00 : 0xdddddd;
-			int categoryColor = selected ? 0xdddd00 : 0xaaaaaa;
-			int keyColor = selected ? 0x666600 : 0x666666;
+
+			int nameColor = selected ? 0xffff00 : (hovered ? 0xdddd88 : 0xdddddd);
+			int keyColor = selected ? 0x666600 : (hovered ? 0x666644 : 0x666666);
 
 			context.drawTextWithShadow(client.textRenderer, be.name,
 					searchBox.getX(),
@@ -97,7 +103,7 @@ public class SearchScreen extends Screen {
 			context.drawTextWithShadow(client.textRenderer, be.categoryName,
 					searchBox.getX() + searchBox.getWidth() - catWidth,
 					searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2),
-					categoryColor);
+					nameColor);
 
 			if (TMB.Config.showBindIDs) {
 				context.drawTextWithShadow(client.textRenderer, be.id,
@@ -122,7 +128,6 @@ public class SearchScreen extends Screen {
 
 		if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
 			onAccept();
-			client.setScreen(null);
 			return true;
 		}
 
@@ -163,6 +168,39 @@ public class SearchScreen extends Screen {
 		return true;
 	}
 
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+			int i = 0;
+			int rowSize = getEntryHeight();
+
+			int halfRows = (height - searchBox.getY() - searchBox.getHeight()) / (rowSize * 2) / 2;
+			int offset = selectedIndex - halfRows;
+			if (selectedIndex < halfRows)
+				offset = 0;
+
+			for (BindingEntry be : matched) {
+				if (!TMB.Config.drawUndeflowSuggestions && i - offset < 0) {
+					i++;
+					continue;
+				}
+
+				Rect2i r = new Rect2i(searchBox.getX(),
+						searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2),
+						searchBox.getWidth(), (rowSize * 2) - 1);
+
+				if (r.contains((int) mouseX, (int) mouseY)) {
+					selectedIndex = i;
+					onAccept();
+					return true;
+				}
+				i++;
+			}
+		}
+
+		return super.mouseClicked(mouseX, mouseY, button);
+	}
+
 	void onQueryChanged(String query) {
 		BindingEntry oldSelected = null;
 		if (matched.size() != 0)
@@ -191,6 +229,7 @@ public class SearchScreen extends Screen {
 		KeyBinding bind = getSelectedBind();
 		if (bind != null)
 			TMB.queuePress(bind);
+		client.setScreen(null);
 	}
 
 	void onIdSetting(ButtonWidget b) {
