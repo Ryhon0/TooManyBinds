@@ -34,7 +34,7 @@ public class TMB implements ModInitializer {
 			}
 		});
 
-		ClientTickEvents.START_CLIENT_TICK.register(client -> {
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			for (KeyBinding bind : toRelease) {
 				bind.pressed = false;
 			}
@@ -43,6 +43,7 @@ public class TMB implements ModInitializer {
 			for (KeyBinding bind : toPress) {
 				bind.timesPressed++;
 				bind.pressed = true;
+				toRelease.add(bind);
 			}
 			toPress.clear();
 		});
