@@ -1,7 +1,7 @@
 {
 	"category.tmb": "Too Many Binds",
 	"modmenu.descriptionTranslation.quickskin": "Szukaj i symuluj skróty klawiszowye",
-	"key.tmb.search": "Szukaj skrótów klawiszowych",
 	"searchScreen.title": "Szukaj skrótów klawiszowych",
-	"searchScreen.placeholder": "Szukaj skrótów klawiszowych"
+	"key.tmb.search": "Szukaj skrótów klawiszowych",
+	"key.tmb.reloadConfig": "Przeładuj konfigurację"
 }

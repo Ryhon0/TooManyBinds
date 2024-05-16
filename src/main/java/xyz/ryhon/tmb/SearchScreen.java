@@ -1,12 +1,13 @@
 package xyz.ryhon.tmb;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.text.Text;
@@ -14,17 +15,37 @@ import net.minecraft.util.Language;
 
 public class SearchScreen extends Screen {
 	TextFieldWidget searchBox;
-	List<String> matchedKeys = new ArrayList<>();
+	ButtonWidget idSettingButton;
+	ButtonWidget underflowSettingButton;
+
+	List<BindingEntry> binds = new ArrayList<>();
+	List<BindingEntry> matched = new ArrayList<>();
 	int selectedIndex = 0;
 
 	public SearchScreen() {
 		super(Text.translatable("searchScreen.title"));
+		binds = getEntries();
 	}
 
 	@Override
 	protected void init() {
-		searchBox = new TextFieldWidget(client.textRenderer, width / 2, 32,
-				Text.translatable("searchScreen.placeholder"));
+		{
+			int buttonSize = 16;
+			int y = 0;
+
+			idSettingButton = ButtonWidget.builder(Text.literal("ID"), this::onIdSetting)
+					.dimensions(0, y, buttonSize, buttonSize).build();
+			addDrawableChild(idSettingButton);
+			y += buttonSize;
+
+			underflowSettingButton = ButtonWidget.builder(Text.literal("^"), this::onUnderflowSetting)
+					.dimensions(0, y, buttonSize, buttonSize).build();
+			addDrawableChild(underflowSettingButton);
+			y += buttonSize;
+		}
+
+		searchBox = new TextFieldWidget(client.textRenderer, width / 2, 24,
+				Text.empty());
 		searchBox.setChangedListener(this::onQueryChanged);
 
 		searchBox.setPosition(width / 2 - (searchBox.getWidth() / 2), height / 2 - (searchBox.getHeight() / 2));
@@ -36,35 +57,60 @@ public class SearchScreen extends Screen {
 		onQueryChanged("");
 	}
 
+	int getEntryHeight() {
+		return TMB.Config.showBindIDs ? 9 : 5;
+	}
+
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
 
-		context.drawTextWithShadow(client.textRenderer, (selectedIndex + 1) + "/" + matchedKeys.size(),
+		context.drawTextWithShadow(client.textRenderer, (selectedIndex + 1) + "/" + matched.size(),
 				searchBox.getX() + searchBox.getWidth() + 8, searchBox.getY() + (searchBox.getHeight() / 2) - 4,
 				0xffffff);
 
 		int i = 0;
-		int rowSize = 8;
+		int rowSize = getEntryHeight();
 
 		int halfRows = (height - searchBox.getY() - searchBox.getHeight()) / (rowSize * 2) / 2;
 		int offset = selectedIndex - halfRows;
 		if (selectedIndex < halfRows)
 			offset = 0;
 
-		for (String k : matchedKeys) {
-			Boolean selected = selectedIndex == i;
-			int nameColor = selected ? 0x00ff00 : 0xffffff;
-			int keyColor = selected ? 0x006600 : 0x666666;
+		for (BindingEntry be : matched) {
+			if (!TMB.Config.drawUndeflowSuggestions && i - offset < 0) {
+				i++;
+				continue;
+			}
 
-			context.drawCenteredTextWithShadow(client.textRenderer, Language.getInstance().get(k, k),
-					searchBox.getX() + (searchBox.getWidth() / 2),
+			Boolean selected = selectedIndex == i;
+			int nameColor = selected ? 0xffff00 : 0xdddddd;
+			int categoryColor = selected ? 0xdddd00 : 0xaaaaaa;
+			int keyColor = selected ? 0x666600 : 0x666666;
+
+			context.drawTextWithShadow(client.textRenderer, be.name,
+					searchBox.getX(),
 					searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2),
 					nameColor);
-			context.drawCenteredTextWithShadow(client.textRenderer, k,
-					searchBox.getX() + (searchBox.getWidth() / 2),
-					searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2) + rowSize,
-					keyColor);
+
+			int catWidth = client.textRenderer.getWidth(be.categoryName);
+			context.drawTextWithShadow(client.textRenderer, be.categoryName,
+					searchBox.getX() + searchBox.getWidth() - catWidth,
+					searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2),
+					categoryColor);
+
+			if (TMB.Config.showBindIDs) {
+				context.drawTextWithShadow(client.textRenderer, be.id,
+						searchBox.getX(),
+						searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2) + rowSize,
+						keyColor);
+
+				catWidth = client.textRenderer.getWidth(be.categoryId);
+				context.drawTextWithShadow(client.textRenderer, be.categoryId,
+						searchBox.getX() + searchBox.getWidth() - catWidth,
+						searchBox.getY() + searchBox.getHeight() + ((i - offset) * rowSize * 2) + rowSize,
+						keyColor);
+			}
 
 			i++;
 		}
@@ -93,14 +139,14 @@ public class SearchScreen extends Screen {
 	}
 
 	void onQueryChanged(String query) {
-		String oldKey = null;
-		if (matchedKeys.size() != 0)
-			oldKey = matchedKeys.get(selectedIndex);
+		BindingEntry oldSelected = null;
+		if (matched.size() != 0)
+			oldSelected = matched.get(selectedIndex);
 
-		matchedKeys = match(query);
+		matched = match(query);
 
-		if (oldKey != null) {
-			int newIdx = matchedKeys.indexOf(oldKey);
+		if (oldSelected != null) {
+			int newIdx = matched.indexOf(oldSelected);
 			if (newIdx != -1) {
 				selectedIndex = newIdx;
 				return;
@@ -111,9 +157,9 @@ public class SearchScreen extends Screen {
 	}
 
 	KeyBinding getSelectedBind() {
-		if (matchedKeys.size() == 0)
+		if (matched.size() == 0)
 			return null;
-		return KeyBinding.KEYS_BY_ID.get(matchedKeys.get(selectedIndex));
+		return matched.get(selectedIndex).bind;
 	}
 
 	void onAccept() {
@@ -122,34 +168,79 @@ public class SearchScreen extends Screen {
 			TMB.queuePress(bind);
 	}
 
-	List<String> match(String query) {
-		ArrayList<String> list = new ArrayList<>();
-		ArrayList<String> keyList = new ArrayList<>();
-		keyList.addAll(KeyBinding.KEYS_BY_ID.keySet());
-		Collections.sort(keyList);
+	void onIdSetting(ButtonWidget b) {
+		TMB.Config.showBindIDs = !TMB.Config.showBindIDs;
+		TMB.Config.saveConfig();
+	}
 
-		if (query.length() == 0)
-			return keyList;
+	void onUnderflowSetting(ButtonWidget b) {
+		TMB.Config.drawUndeflowSuggestions = !TMB.Config.drawUndeflowSuggestions;
+		TMB.Config.saveConfig();
+	}
 
-		for (String key : keyList) {
-			if (matches(key, query) || matches(Language.getInstance().get(key, null), query))
-				list.add(key);
+	List<BindingEntry> match(String query) {
+		ArrayList<BindingEntry> list = new ArrayList<>();
+
+		for (BindingEntry be : binds) {
+			if (be.matches(query))
+				list.add(be);
 		}
 
 		return list;
 	}
 
-	boolean matches(String key, String query) {
-		if (key == null)
-			return false;
+	List<BindingEntry> getEntries() {
+		ArrayList<BindingEntry> list = new ArrayList<>();
 
-		String[] queries = query.split("\\ ");
-		for (String q : queries) {
-			if (!key.toLowerCase().contains(q.toLowerCase())) {
-				return false;
-			}
+		for (KeyBinding e : KeyBinding.KEYS_BY_ID.values()) {
+			String name = Language.getInstance().get(e.getTranslationKey(), e.getTranslationKey());
+			String categoryName = Language.getInstance().get(e.getCategory(), e.getCategory());
+
+			BindingEntry be = new BindingEntry(e,
+					e.getTranslationKey(), name,
+					e.getCategory(), categoryName);
+
+			list.add(be);
 		}
 
-		return true;
+		return list;
+	}
+
+	class BindingEntry {
+		public BindingEntry(KeyBinding bind, String id, String name, String categoryId, String categoryName) {
+			this.bind = bind;
+
+			this.id = id;
+			this.name = name;
+
+			this.categoryId = categoryId;
+			this.categoryName = categoryName;
+		}
+
+		public KeyBinding bind;
+
+		public String id;
+		public String name;
+
+		public String categoryId;
+		public String categoryName;
+
+		public boolean matches(String query) {
+			String[] split = query.toLowerCase().split("\\ ");
+
+			return stringMatches(name, split) ||
+					stringMatches(id, split) ||
+					stringMatches(categoryName, split) ||
+					stringMatches(categoryId, split);
+		}
+
+		boolean stringMatches(String text, String[] split) {
+			for (String q : split) {
+				if (!text.toLowerCase().contains(q)) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 }

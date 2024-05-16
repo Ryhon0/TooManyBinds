@@ -1,6 +1,6 @@
 {
 	"category.tmb": "Too Many Binds",
-	"key.tmb.search": "Search Keybinds",
 	"searchScreen.title": "Search Keybinds",
-	"searchScreen.placeholder": "Search Keybinds"
+	"key.tmb.search": "Search Keybinds",
+	"key.tmb.reloadConfig": "Reload Config"
 }
