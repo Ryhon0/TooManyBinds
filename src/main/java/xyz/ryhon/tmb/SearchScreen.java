@@ -39,7 +39,7 @@ public class SearchScreen extends Screen {
 			addDrawableChild(idSettingButton);
 			y += buttonSize;
 
-			underflowSettingButton = ButtonWidget.builder(Text.literal("^"), this::onUnderflowSetting)
+			underflowSettingButton = ButtonWidget.builder(Text.literal("↑"), this::onUnderflowSetting)
 					.dimensions(0, y, buttonSize, buttonSize).build();
 			addDrawableChild(underflowSettingButton);
 			y += buttonSize;
