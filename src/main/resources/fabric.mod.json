@@ -14,7 +14,7 @@
 	},
 	"license": "GPL-3.0",
 	"icon": "assets/tmb/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"xyz.ryhon.tmb.TMB"
