@@ -118,6 +118,8 @@ public class SearchScreen extends Screen {
 
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		boolean handled = false;
+
 		if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
 			onAccept();
 			client.setScreen(null);
@@ -126,14 +128,19 @@ public class SearchScreen extends Screen {
 
 		else if (keyCode == GLFW.GLFW_KEY_UP) {
 			selectedIndex--;
-		} else if (keyCode == GLFW.GLFW_KEY_TAB || keyCode == GLFW.GLFW_KEY_DOWN) {
+			handled = true;
+		} else if (keyCode == GLFW.GLFW_KEY_DOWN || (searchBox.isFocused() && keyCode == GLFW.GLFW_KEY_TAB)) {
 			selectedIndex++;
+			handled = true;
 		}
 
 		if (selectedIndex == -1)
-			selectedIndex = matchedKeys.size() - 1;
-		if (selectedIndex == matchedKeys.size())
+			selectedIndex = matched.size() - 1;
+		if (selectedIndex == matched.size())
 			selectedIndex = 0;
+
+		if (handled)
+			return true;
 
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
