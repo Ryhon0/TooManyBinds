@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "tmb",
 	"version": "${version}",
-	"name": "Too Many Binds",
+	"name": "Too Many Binds Plus",
 	"description": "Search and simulate keybinds",
 	"authors": [
 		"Ryhon"
