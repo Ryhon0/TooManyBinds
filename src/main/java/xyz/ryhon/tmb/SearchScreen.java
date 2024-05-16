@@ -138,6 +138,24 @@ public class SearchScreen extends Screen {
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		if (verticalAmount == 0)
+			return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+
+		else if (verticalAmount > 0)
+			selectedIndex--;
+		else
+			selectedIndex++;
+
+		if (selectedIndex == -1)
+			selectedIndex = matched.size() - 1;
+		if (selectedIndex == matched.size())
+			selectedIndex = 0;
+
+		return true;
+	}
+
 	void onQueryChanged(String query) {
 		BindingEntry oldSelected = null;
 		if (matched.size() != 0)
