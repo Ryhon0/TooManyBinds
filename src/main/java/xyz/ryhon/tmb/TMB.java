@@ -36,24 +36,13 @@ public class TMB implements ModInitializer {
 
 		ClientTickEvents.START_CLIENT_TICK.register(client -> {
 			for (KeyBinding bind : toRelease) {
-				try {
-					Field f = bind.getClass().getDeclaredField("pressed");
-					f.setAccessible(true);
-					f.setBoolean(bind, false);
-				} catch (Exception e) {
-				}
+				bind.pressed = false;
 			}
 			toRelease.clear();
 
 			for (KeyBinding bind : toPress) {
 				bind.timesPressed++;
-				try {
-					Field f = bind.getClass().getDeclaredField("pressed");
-					f.setAccessible(true);
-					f.setBoolean(bind, true);
-					toRelease.add(bind);
-				} catch (Exception e) {
-				}
+				bind.pressed = true;
 			}
 			toPress.clear();
 		});
