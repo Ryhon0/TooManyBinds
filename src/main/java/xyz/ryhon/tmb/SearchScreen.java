@@ -69,7 +69,7 @@ public class SearchScreen extends Screen {
 
 		context.drawTextWithShadow(client.textRenderer, (selectedIndex + 1) + "/" + matched.size(),
 				searchBox.getX() + searchBox.getWidth() + 8, searchBox.getY() + (searchBox.getHeight() / 2) - 4,
-				0xffffff);
+				0xffffffff);
 
 		int i = 0;
 		int rowSize = getEntryHeight();
@@ -92,8 +92,8 @@ public class SearchScreen extends Screen {
 			Boolean hovered = r.contains(mouseX, mouseY);
 			Boolean selected = selectedIndex == i;
 
-			int nameColor = selected ? 0xffff00 : (hovered ? 0xdddd88 : 0xdddddd);
-			int keyColor = selected ? 0x666600 : (hovered ? 0x666644 : 0x666666);
+			int nameColor = selected ? 0xffffff00 : (hovered ? 0xffdddd88 : 0xffdddddd);
+			int keyColor = selected ? 0xff666600 : (hovered ? 0xff666644 : 0xff666666);
 
 			context.drawTextWithShadow(client.textRenderer, be.name,
 					searchBox.getX(),
